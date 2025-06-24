@@ -25,7 +25,7 @@ struct ContentView: View {
     @State private var droppedFilePath: URL?
     @State private var outputLocation: URL?
     @State private var processingState: ProcessingState = .idle
-    @State private var statusMessage: String = "Drag & Drop Audio File"
+    @State private var statusMessage: String = "Drag & Drop Audio File or Click to Select"
     @State private var separationResults: [SeparatedFile] = []
     
     @State private var activeTaskHash: String?
