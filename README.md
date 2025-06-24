@@ -1,9 +1,9 @@
 # MacVSep
-### v0.4.1 - Click-to-Select Alpha
+### v0.5.4 - First Beta
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
-![Screenshot of MacVSep](https://i.imgur.com/7ioH5Ya.jpeg) 
+![Screenshot of MacVSep](https://i.imgur.com/LelULqw.png) 
 
 ---
 
@@ -11,8 +11,10 @@ A sleek, modern macOS client for the Mvsep music separation API.
 
 *   **Modern UI:** A clean, translucent interface built with the latest SwiftUI standards for macOS.
 *   **Flexible File Input:** Drag & Drop your audio file OR simply click the drop zone to select a file.
-*   **Full Model Support:** Access to all of Mvsep's separation models, including those with additional specific options.
+*   **Favorite Models:** Pin your most-used models to the top of the list for quick access!
+*   **Full Model Support:** Access to all of MVSep's separation models, including those with additional specific options.
 *   **Real-time Progress:** Watch the status of your separation update from "Uploading" to "Waiting" (meaning you are in queue) to "Processing" to "Done".
+*   **Interactive Local History:** A persistent, locally stored history of all your separation jobs. Re-download completed jobs directly from the history panel.
 *   **Direct Downloads:** Download your separated files directly to a folder of your choosing.
 *   **Persistent Output Location:** Remembers the last used output folder between app launches.
 
@@ -44,7 +46,7 @@ Here are some of the features and improvements planned for future versions:
 #### Community & Project
 *   [ ] **Community:**
     *   [ ] Create a Discord server for community discussion and support.
-*   [ ] **Move to Beta:** Once the core features are stable and polished.
+*   [x] **Move to Beta:** Once the core features are stable and polished.
 *   [ ] **Official `v1.0.0` Release!**
 
 ## 🤔 Considered Features
