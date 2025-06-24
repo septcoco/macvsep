@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct MVSepApp: App {
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("MacVSep") {
             ContentView()
         }
     }

@@ -16,22 +16,19 @@ struct SettingsView: View {
                 SecureField("Paste your Mvsep API key here", text: $apiKey)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
-
-            // --- FIX 3c ---
+            
             VStack(alignment: .leading, spacing: 8) {
                 Button(action: {
-                    // This sends the user to the correct starting page.
                     if let url = URL(string: "https://mvsep.com/user-api") {
                         openURL(url)
                     }
                 }) {
-                    Text("Get API Key from MVSep Website")
+                    Text("Get API Key from Mvsep Website")
                         .frame(maxWidth: .infinity)
                 }
                 .controlSize(.large)
                 
-                Text("This will open the user API page. Click 'here' on it.")
-                Text("Then copy and paste the key above.")
+                Text("This will open the user API page. Click 'Create private key' there, then copy and paste the key above.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

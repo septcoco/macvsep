@@ -1,10 +1,11 @@
 import Foundation
 
+// MARK: - Core Data Structures
+
 struct OptionValue: Hashable {
     let displayName: String
     let parameterValue: String
 }
-
 
 struct AdditionalOption: Hashable {
     let parameterName: String
@@ -23,13 +24,52 @@ struct OutputFormat: Identifiable, Hashable {
     let name: String
 }
 
-
 struct SeparatedFile: Identifiable, Hashable {
     let id = UUID()
     let fileName: String
     let downloadURL: String
 }
 
+struct LocalJob: Codable, Identifiable, Hashable {
+    var id: String { hash }
+    let hash: String
+    let inputFileName: String
+    let modelName: String
+    let submissionDate: Date
+}
+
+// MARK: - API Response Structures
+
+struct SubmitResponse: Codable {
+    let success: Bool
+    struct SubmitData: Codable {
+        let hash: String
+    }
+    let data: SubmitData?
+}
+
+struct ErrorResponse: Codable {
+    let success: Bool
+    let errors: [String]
+}
+
+struct APIFileResult: Codable, Hashable {
+    let type: String
+    let url: String
+    let download: String
+}
+
+struct StatusResponse: Codable {
+    let success: Bool
+    let status: String
+    struct StatusData: Codable {
+        let files: [APIFileResult]?
+        let message: String?
+    }
+    let data: StatusData?
+}
+
+// MARK: - Static App Data
 struct AppData {
     static let models: [SeparationModel] = [
         SeparationModel(
@@ -264,7 +304,7 @@ struct AppData {
             id: 35, name: "MVSep MelBand Roformer (vocals, instrum)", additionalOptions: nil
         ),
         SeparationModel(
-            id: 36, name: "Bandit Plus (speech, music, effects)", additionalOptions: nil // Bandit Plus is not in docs, Bandit v2 is
+            id: 36, name: "Bandit Plus (speech, music, effects)", additionalOptions: nil
         ),
         SeparationModel(
             id: 37, name: "DrumSep (4-6 stems: kick, snare, cymbals, etc.)",
@@ -544,7 +584,7 @@ struct AppData {
                     OptionValue(displayName: "Mel + SCNet", parameterValue: "2")
                 ])
             ]),
-        SeparationModel(id: 62, name: "Stable Audio Open Gen", additionalOptions: nil), 
+        SeparationModel(id: 62, name: "Stable Audio Open Gen", additionalOptions: nil),
         SeparationModel(id: 63, name: "BS Roformer SW (vocals, bass, drums, guitar, piano, other)", additionalOptions: nil)
     ]
     
@@ -554,37 +594,4 @@ struct AppData {
         OutputFormat(id: 2, name: "flac (lossless)"),
         OutputFormat(id: 3, name: "m4a (lossy)")
     ]
-}
-
-struct SubmitResponse: Codable {
-    let success: Bool
-    struct SubmitData: Codable {
-        let hash: String
-    }
-    let data: SubmitData?
-}
-
-struct ErrorResponse: Codable {
-    let success: Bool
-    let errors: [String]
-}
-
-struct APIFileResult: Codable, Hashable {
-    let type: String
-    let url: String
-    let download: String
-}
-
-struct StatusResponse: Codable {
-    let success: Bool
-    let status: String
-    
-    struct StatusData: Codable {
-        // --- FIX 4 ---
-        let files: [APIFileResult]?
-        
-        let message: String?
-    }
-    
-    let data: StatusData?
 }

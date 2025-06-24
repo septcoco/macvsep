@@ -1,6 +1,5 @@
 import Foundation
 
-
 enum APIError: Error, LocalizedError {
     case invalidResponse
     case apiError(message: String)
@@ -9,7 +8,7 @@ enum APIError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidResponse: return "The server returned an invalid or unexpected response."
-        case .apiError(let message): return message // This will show the server's message, e.g., "invalid token"
+        case .apiError(let message): return message
         case .uploadFailed(let message): return "Upload failed: \(message)"
         }
     }
@@ -103,17 +102,10 @@ class APIService {
             }
             
             do {
-                // This will now correctly decode all valid status responses
                 let result = try JSONDecoder().decode(StatusResponse.self, from: data)
                 completion(.success(result))
             } catch {
-                // --- Better Debugging ---
-                let responseString = String(data: data, encoding: .utf8) ?? "No response body"
-                print("--- FAILED TO DECODE STATUS RESPONSE ---")
-                print("Server response was: \(responseString)")
-                print("Decoding error: \(error.localizedDescription)")
-                print("--------------------------------------")
-                completion(.failure(APIError.invalidResponse)) // Send a clean error to the UI
+                completion(.failure(APIError.invalidResponse))
             }
         }.resume()
     }
