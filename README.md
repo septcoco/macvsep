@@ -35,7 +35,7 @@ Here are some of the features and improvements planned for future versions:
 #### Core Functionality
 *   [x] **Persistent Output Location:** Remember the last used output folder between app launches.
 *   [x] **Favorite Models:** Allow users to mark models as favorites to pin them to the top of the list.
-*   [ ] **History:** Keep a history of past separation jobs, which automatically clears after 72 hours (to match Mvsep's server retention).
+*   [x] **History:** Keep a history of past separation jobs, which automatically clears after 72 hours (to match Mvsep's server retention).
 *   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (Requires a "Premium Account" setting to handle job limits).
 *   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen`.
 
