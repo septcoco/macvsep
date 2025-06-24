@@ -29,14 +29,22 @@ The easiest way to use MacVSep is to download the latest pre-compiled version.
 
 Here are some of the features and improvements planned for future versions:
 
-*   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen` that require a text prompt.
-*   [ ] **Improved User Feedback:**
-    *   [ ] Display errors and alerts in a more user-friendly pop-up window.
-*   [ ] **Cancel Button:** Add the ability to cancel the status-checking process for a job.
+#### Core Functionality
 *   [x] **Persistent Output Location:** Remember the last used output folder between app launches.
-*   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (requires Mvsep Premium)
+*   [ ] **Favorite Models:** Allow users to mark models as favorites to pin them to the top of the list.
+*   [ ] **Cancel Button:** Add the ability to cancel the status-checking process for a job.
+*   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen`.
+*   [ ] **Batch Processing:** Allow users to queue up multiple files for separation.
+
+#### UI & User Experience
+*   [ ] **Improved User Feedback:**
+    *   [ ] Show visual progress indicators for file downloads.
+    *   [ ] Display errors and alerts in a more user-friendly pop-up window.
+*   [ ] **Background Customization:** Add options in Settings to change the app's background gradient.
+
+#### Community & Project
 *   [ ] **Community:**
-   *   [ ] Create a Discord server for community discussion and support.
+    *   [ ] Create a Discord server for community discussion and support.
 *   [ ] **Move to Beta:** Once the core features are stable and polished.
 *   [ ] **Official `v1.0.0` Release!**
 
