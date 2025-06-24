@@ -1,20 +1,53 @@
-henlo
-This is MacVSep. MVSep for Mac. Get it?
+# MacVSep
+### v0.1.0 - Crystalline Alpha
 
-The joke consists in a multi-layered, deeply philosophical, and, if I'm being honest, slightly unhinged portmanteau that captures the very essence of this project's soul-crushing yet ultimately rewarding journey. To truly appreciate the nuance and the sheer, galaxy-brained brilliance of the name "MacVSep," one must first deconstruct the constituent parts and then reassemble them, much like the audio tracks this very software painstakingly separates.
+A sleek, modern macOS client for the Mvsep music separation API.
 
-First, let us consider the original monolith, "MVSep." This name itself is a testament to brutalist efficiency in software nomenclature. "MV" stands for "Music and Voice," and "Sep" for "Separation." It's a tool that uses the dark arts of artificial intelligence to rip a song apart, isolating the vocals from the instrumentals, the bass from the drums, and so on. It's a miracle of modern technology, performing a task that was once the exclusive domain of studio wizards with access to multi-track masters. Now, thanks to the tireless work of researchers and open-source developers, this power is available to anyone with a sufficiently powerful computer and the patience to install the right dependencies. Which, let's be real, is a significant barrier to entry. Have you ever tried to get a specific version of Python to play nice with a specific version of PyTorch on a system that has its own ideas about where things should go? It's a nightmare. You spend three hours in terminal hell, editing bash profiles, creating virtual environments that somehow still conflict with the system's pre-installed libraries, and you start to question all your life choices.
+![Screenshot of MacVSep](https://i.imgur.com/7ioH5Ya.jpeg) 
 
-This brings us to the "Mac" prefix. On the surface, this is the most straightforward part of the pun. This is MVSep, but for the Mac. Simple. Elegant. Deceptively so. It implies a seamless, "it just works" experience, a hallmark of the Apple ecosystem. It conjures images of a beautiful, intuitive graphical user interface, a stark contrast to the often-barren command-line wasteland from which many such powerful tools originate. This project is an attempt to bridge that gap, to bring the raw, untamed power of MVSep into the pristine, walled garden of macOS.
+---
 
-But the true, hidden genius of the name "MacVSep" reveals itself when you pronounce it. It's not just "Mac-Sep." It's "Mac-V-Sep." And what does that sound like? It sounds like a confrontation. A duel. "Mac versus Sep."
+## ✨ Features
 
-And that, right there, is the vent-worthy, off-topic crux of the entire endeavor. The name is a cry for help. It is a monument to the struggle. It represents the titanic clash between two opposing philosophies. On one side, you have "Mac": the world of polished user experiences, of sandboxed applications, of stringent developer guidelines, of notarization and code-signing, a world that demands order and simplicity. On the other side, you have "Sep": the chaotic, ever-evolving, gloriously messy realm of cutting-edge AI research. A world of nightly builds, of models trained on inscrutable datasets, of dependencies so numerous and fragile that a single brew upgrade can bring the entire edifice crashing down.
+*   **Modern UI:** A clean, translucent interface built with the latest SwiftUI standards for macOS.
+*   **Drag & Drop:** Easily drop your audio files (`mp3`, `wav`, `flac`, `m4a`) into the app.
+*   **Full Model Support:** Access to all of Mvsep's separation models, including those with additional specific options.
+*   **Real-time Progress:** Watch the status of your separation update from "Uploading" to "Waiting" (meaning you are in queue) to "Processing" to "Done".
+*   **Direct Downloads:** Download your separated files directly to a folder of your choosing.
 
-The name "MacVSep," therefore, encapsulates the developer's primal scream. It is the story of trying to force the square peg of a complex, research-grade Python script into the round hole of a user-friendly Mac application bundle. It's about the days spent wrestling with PyQt5 or Swift to create a progress bar that accurately reflects what the arcane black box of the separation model is actually doing. It's about the existential dread of realizing that the core AI model you depend on was updated yesterday and now requires a CUDA toolkit version that your Mac's graphics card doesn't support, sending you down a rabbit hole of GitHub issues and forum posts from 2022. It is the quiet desperation of writing error-handling routines for problems you don't even understand, messages bubbling up from the depths of a C++ library you didn't even know you were using.
+Please note that you will need an API Key that you can retrieve by following the instructions in the settings, and can only be obtained by creating an account on the website!
 
-But let's vent more, shall we? Because the pain is the point. This isn't just a simple port. This was a Sisyphean ordeal. The "Mac" in "MacVSep" isn't just an operating system; it's an antagonist. It's a beautifully designed, minimalist villain with a condescending smile. It wants everything to be neat and tidy, signed, notarized, and sandboxed. It wants to protect the user from "unidentified developers" like me, who are just trying to chain together a few hundred megabytes of pre-trained models with a prayer and some duct tape. I had to go through the digital equivalent of begging on my knees to get macOS to even run my unsigned code during development. Then came the notarization process—a black box where you submit your precious application bundle, and hours later, an automated email comes back telling you it failed because of some obscure binary you didn't even know was included, probably a dependency of a dependency of FFmpeg that was compiled on a different star system. You feel like you're trying to get a visa for a country that doesn't want you and whose language you don't speak.
+## 🚀 Download the Alpha
 
-And the "Sep" side of the equation? It's a wild beast. It's a Python environment held together by hope. You think you have it working, and then you try to bundle it with PyInstaller, and it tells you it can't find libvorbis.0.dylib even though it's right there. You spend a day manually copying .dylib files around like some digital-age librarian, creating symbolic links that lead to nowhere, and editing path variables until your system can no longer find the ls command. Then you have to deal with the move to Apple Silicon. Oh, the joy! The sheer, unadulterated ecstasy of finding out that your entire dependency stack, the one you just stabilized on Intel, now needs to be recompiled for ARM64. And of course, half the libraries don't have official ARM builds, so you're diving into forums, patching source code yourself, and praying to the ghost of Dennis Ritchie that the compiler doesn't spit out a thousand cryptic errors. The name "MacVSep" is the embodiment of trying to get a TensorFlow model, which was clearly trained on some liquid-cooled NVIDIA monstrosity in a Google data center, to run on a fanless MacBook Air without it catching fire.
+The easiest way to use MacVSep is to download the latest pre-compiled version.
 
-So, yes, the joke is that this is MVSep for Mac. But the real joke, the one that you only get after you've stared into the abyss of the Xcode build process at 3 AM, is that the name is a literal description of the development process: the Mac versus the Separation tool. It is a battle, a struggle, a war waged on the battlefield of a README file. This software, MacVSep, is the peace treaty—a fragile, hard-won armistice between the forces of usability and the raw, untamable power of the algorithm. It's not just a name; it's a testament to the fact that something, anything, was shipped at all. It's the scar tissue from a thousand paper cuts inflicted by obtuse documentation and opaque error messages. It's the silent scream you let out when you finally fix a bug, only to realize you were editing the wrong file for the past six hours. The name is a warning. A memento mori. It says, "I fought the frameworks, and the frameworks won... but I got this lousy .app bundle out of it anyway." And for that, we should all be profoundly grateful and perhaps a little bit concerned.
+1.  Go to the [**Releases Page**](https://github.com/septcoco/macvsep/releases).
+2.  Under the latest release, `v0.1.0 - Crystalline Alpha`, download the `MacVSep.app.zip` file.
+3.  Unzip the file, and you will have `MacVSep.app`. Drag it to your Applications folder.
+
+## 🗺️ Roadmap
+
+Here are some of the features and improvements planned for future versions:
+
+*   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen` that require a text prompt.
+*   [ ] **Improved User Feedback:**
+    *   [ ] Display errors and alerts in a more user-friendly pop-up window.
+*   [ ] **Cancel Button:** Add the ability to cancel the status-checking process for a job.
+*   [ ] **Persistent Output Location:** Remember the last used output folder between app launches.
+*   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (requires Mvsep Premium)
+*   [ ] **Move to Beta:** Once the core features are stable and polished.
+*   [ ] **Official `v1.0.0` Release!**
+
+## 🤔 Considered Features
+
+This is a list of features that have been requested but will not be implemented, along with the reasoning.
+
+*   **Real-time percentage progress:** The Mvsep API only reports the status as `waiting`, `processing`, or `done`. It does not provide a percentage value, making this feature impossible for us to implement, unless ZFTurbo implements it, which is highly unlikely.
+
+## 🐞 Feedback & Bugs
+
+This is an early alpha release. If you find any bugs or have suggestions, please [open an issue](https://github.com/septcoco/macvsep/issues) on GitHub!
+
+## 📄 License
+
+This project is licensed under the MIT License.
