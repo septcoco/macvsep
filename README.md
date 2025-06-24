@@ -35,6 +35,8 @@ Here are some of the features and improvements planned for future versions:
 *   [ ] **Cancel Button:** Add the ability to cancel the status-checking process for a job.
 *   [x] **Persistent Output Location:** Remember the last used output folder between app launches.
 *   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (requires Mvsep Premium)
+*   [ ] **Community:**
+   *   [ ] Create a Discord server for community discussion and support.
 *   [ ] **Move to Beta:** Once the core features are stable and polished.
 *   [ ] **Official `v1.0.0` Release!**
 
