@@ -22,7 +22,7 @@ Please note that you will need an API Key that you can retrieve by following the
 The easiest way to use MacVSep is to download the latest pre-compiled version.
 
 1.  Go to the [**Releases Page**](https://github.com/septcoco/macvsep/releases).
-2.  Under the latest release, `v0.1.0 - Crystalline Alpha`, download the `MacVSep.app.zip` file.
+2.  Under the latest release, download the `MacVSep.app.zip` file.
 3.  Unzip the file, and you will have `MacVSep.app`. Drag it to your Applications folder.
 
 ## 🗺️ Roadmap
