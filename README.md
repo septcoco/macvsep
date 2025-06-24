@@ -1,5 +1,5 @@
 # MacVSep
-### v0.1.0 - Crystalline Alpha
+### v0.2.0 - Persistence Alpha
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
@@ -22,19 +22,31 @@ Please note that you will need an API Key that you can retrieve by following the
 The easiest way to use MacVSep is to download the latest pre-compiled version.
 
 1.  Go to the [**Releases Page**](https://github.com/septcoco/macvsep/releases).
-2.  Under the latest release, `v0.1.0 - Crystalline Alpha`, download the `MacVSep.app.zip` file.
+2.  Under the latest release, download the `MacVSep.app.zip` file.
 3.  Unzip the file, and you will have `MacVSep.app`. Drag it to your Applications folder.
 
 ## 🗺️ Roadmap
 
 Here are some of the features and improvements planned for future versions:
 
-*   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen` that require a text prompt.
-*   [ ] **Improved User Feedback:**
-    *   [ ] Display errors and alerts in a more user-friendly pop-up window.
+#### Core Functionality
+*   [x] **Persistent Output Location:** Remember the last used output folder between app launches.
+*   [ ] **Favorite Models:** Allow users to mark models as favorites to pin them to the top of the list.
+*   [ ] **History:** Keep a history of past separation jobs, which automatically clears after 72 hours (to match Mvsep's server retention).
 *   [ ] **Cancel Button:** Add the ability to cancel the status-checking process for a job.
-*   [ ] **Persistent Output Location:** Remember the last used output folder between app launches.
-*   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (requires Mvsep Premium)
+*   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (Requires a "Premium Account" setting to handle job limits).
+*   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen`.
+
+#### UI & User Experience
+*   [ ] **Improved File Input:** Allow users to also click the drop zone to open a file selection dialog.
+*   [ ] **Improved User Feedback:**
+    *   [ ] Show visual progress indicators for file downloads.
+    *   [ ] Display errors and alerts in a more user-friendly pop-up window.
+*   [ ] **Background Customization:** Add options in Settings to change the app's background gradient.
+
+#### Community & Project
+*   [ ] **Community:**
+    *   [ ] Create a Discord server for community discussion and support.
 *   [ ] **Move to Beta:** Once the core features are stable and polished.
 *   [ ] **Official `v1.0.0` Release!**
 
