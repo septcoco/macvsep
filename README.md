@@ -1,5 +1,5 @@
 # MacVSep
-### v0.2.0 - Persistence Alpha
+### v0.3.0 - Favorites Alpha
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
@@ -14,6 +14,7 @@ A sleek, modern macOS client for the Mvsep music separation API.
 *   **Full Model Support:** Access to all of Mvsep's separation models, including those with additional specific options.
 *   **Real-time Progress:** Watch the status of your separation update from "Uploading" to "Waiting" (meaning you are in queue) to "Processing" to "Done".
 *   **Direct Downloads:** Download your separated files directly to a folder of your choosing.
+*   **Persistent Output Location:** Remembers the last used output folder between app launches.
 
 Please note that you will need an API Key that you can retrieve by following the instructions in the settings, and can only be obtained by creating an account on the website!
 
@@ -31,7 +32,7 @@ Here are some of the features and improvements planned for future versions:
 
 #### Core Functionality
 *   [x] **Persistent Output Location:** Remember the last used output folder between app launches.
-*   [ ] **Favorite Models:** Allow users to mark models as favorites to pin them to the top of the list.
+*   [x] **Favorite Models:** Allow users to mark models as favorites to pin them to the top of the list.
 *   [ ] **History:** Keep a history of past separation jobs, which automatically clears after 72 hours (to match Mvsep's server retention).
 *   [ ] **Cancel Button:** Add the ability to cancel the status-checking process for a job.
 *   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (Requires a "Premium Account" setting to handle job limits).
