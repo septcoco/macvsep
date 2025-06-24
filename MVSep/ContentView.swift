@@ -2,15 +2,27 @@ import SwiftUI
 import Combine
 
 struct ContentView: View {
-    @AppStorage("apiKey") private var apiKey: String = ""
-    @State private var showingSettings = false
+    // MARK: - State Variables
     
+    // --- Persistent Storage ---
+    @AppStorage("apiKey") private var apiKey: String = ""
+    @AppStorage("outputLocationString") private var outputLocationString: String = ""
+    @AppStorage("favoriteModelIDsString") private var favoriteModelIDsString: String = ""
+    
+    // --- UI State ---
+    @State private var showingSettings = false
     @State private var selectedModel: SeparationModel
     @State private var selectedOutputFormat: OutputFormat
     @State private var selectedAdditionalOptions: [String: String] = [:]
     
+    // State for the Favorites feature
+    @State private var favoriteIDs: Set<Int> = []
+    
+    // State to control our custom picker
+    @State private var isShowingModelPicker = false
+    
+    // File and process state
     @State private var droppedFilePath: URL?
-    @AppStorage("outputLocationString") private var outputLocationString: String = ""
     @State private var outputLocation: URL?
     @State private var processingState: ProcessingState = .idle
     @State private var statusMessage: String = "Drag & Drop Audio File"
@@ -19,13 +31,24 @@ struct ContentView: View {
     @State private var activeTaskHash: String?
     @State private var statusTimer: AnyCancellable?
     @State private var isTargeted = false
-
+    
+    // This initializer runs once when the app starts.
     init() {
+        // Set the default selections for the dropdowns
         let initialModel = AppData.models.first!
         _selectedModel = State(initialValue: initialModel)
         _selectedOutputFormat = State(initialValue: AppData.outputFormats.first!)
         
-        // --- FIX ---
+        // Load saved output location from storage into our UI state
+        if !outputLocationString.isEmpty, let url = URL(string: outputLocationString) {
+            _outputLocation = State(initialValue: url)
+        }
+        
+        // Load saved favorite IDs from storage into our UI state
+        let savedIDs = favoriteModelIDsString.split(separator: ",").compactMap { Int($0) }
+        _favoriteIDs = State(initialValue: Set(savedIDs))
+        
+        // Set default additional options for the initial model
         var initialOptions: [String: String] = [:]
         if let options = initialModel.additionalOptions {
             for option in options {
@@ -34,12 +57,6 @@ struct ContentView: View {
                 }
             }
         }
-        // Load the saved URL string at startup
-        if !outputLocationString.isEmpty {
-            _outputLocation = State(initialValue: URL(string: outputLocationString))
-        } else {
-            _outputLocation = State(initialValue: nil)
-        }
         _selectedAdditionalOptions = State(initialValue: initialOptions)
     }
     
@@ -47,6 +64,7 @@ struct ContentView: View {
         case idle, uploading, processing, finished, failed
     }
 
+    // MARK: - Main Body
     var body: some View {
         VStack(spacing: 0) {
             headerView
@@ -83,8 +101,8 @@ struct ContentView: View {
         .frame(minWidth: 450, minHeight: 650)
         .background(backgroundGradient)
         .sheet(isPresented: $showingSettings) { SettingsView() }
-        // --- FIX 2b ---
         .onChange(of: selectedModel) { newModel in
+            // When the model changes, reset its specific sub-options
             var defaultOptions: [String: String] = [:]
             if let options = newModel.additionalOptions {
                 for option in options {
@@ -95,11 +113,34 @@ struct ContentView: View {
             }
             selectedAdditionalOptions = defaultOptions
         }
+        .onChange(of: favoriteIDs) { newIDs in
+            // When the user favorites/unfavorites a model, save the change to persistent storage.
+            favoriteModelIDsString = newIDs.map { String($0) }.joined(separator: ",")
+        }
     }
 
+    // MARK: - Computed Properties for UI
+    
+    private var sortedModels: [SeparationModel] {
+        AppData.models.sorted { (modelA, modelB) -> Bool in
+            let isAFavorite = favoriteIDs.contains(modelA.id)
+            let isBFavorite = favoriteIDs.contains(modelB.id)
+            
+            if isAFavorite && !isBFavorite {
+                return true
+            } else if !isAFavorite && isBFavorite {
+                return false
+            } else {
+                return modelA.name < modelB.name
+            }
+        }
+    }
+
+    // MARK: - UI Components
+    
     private var headerView: some View {
         HStack {
-            Text("MacVsep").font(.largeTitle).bold()
+            Text("MacVSep").font(.largeTitle).bold()
             Spacer()
             Button(action: { showingSettings.toggle() }) {
                 Image(systemName: "gearshape.fill").font(.title2)
@@ -153,23 +194,40 @@ struct ContentView: View {
         }
         .padding(20).background(.regularMaterial).cornerRadius(16)
     }
-
+    
     private var controls: some View {
         VStack(spacing: 16) {
-            Picker("Separation Model", selection: $selectedModel) {
-                ForEach(AppData.models) { model in
-                    Text(model.name).tag(model)
+            // A custom picker built with a Button and a Popover
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Separation Model").font(.caption).foregroundColor(.secondary)
+                Button(action: { isShowingModelPicker = true }) {
+                    HStack {
+                        Text(selectedModel.name)
+                        Spacer()
+                        Image(systemName: "chevron.up.chevron.down").font(.caption)
+                    }
+                    .padding(8)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(5)
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $isShowingModelPicker, arrowEdge: .bottom) {
+                    ModelPickerView(
+                        sortedModels: sortedModels,
+                        favoriteIDs: $favoriteIDs,
+                        selectedModel: $selectedModel,
+                        isShowingPopover: $isShowingModelPicker
+                    )
                 }
             }
-            .pickerStyle(MenuPickerStyle())
             
+            // Sub-options that appear dynamically
             if let additionalOptions = selectedModel.additionalOptions {
                 ForEach(additionalOptions, id: \.self) { option in
                     let binding = Binding<String>(
                         get: { self.selectedAdditionalOptions[option.parameterName] ?? "" },
                         set: { self.selectedAdditionalOptions[option.parameterName] = $0 }
                     )
-                    
                     Picker(option.uiName, selection: binding) {
                         ForEach(option.values, id: \.self) { value in
                             Text(value.displayName).tag(value.parameterValue)
@@ -179,6 +237,7 @@ struct ContentView: View {
                 }
             }
             
+            // Output Format Picker
             Picker("Output Format", selection: $selectedOutputFormat) {
                 ForEach(AppData.outputFormats) { format in
                     Text(format.name).tag(format)
@@ -212,13 +271,25 @@ struct ContentView: View {
         }
     }
     
+    // MARK: - Core Logic Functions
+    
+    private func toggleFavorite(for model: SeparationModel) {
+        if favoriteIDs.contains(model.id) {
+            favoriteIDs.remove(model.id)
+        } else {
+            favoriteIDs.insert(model.id)
+        }
+    }
+    
     private func showSavePanel() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        if panel.runModal() == .OK { self.outputLocation = panel.url
-            self.outputLocationString = panel.url?.absoluteString ?? "" }
+        if panel.runModal() == .OK, let url = panel.url {
+            self.outputLocation = url
+            self.outputLocationString = url.absoluteString
+        }
     }
     
     private func startSeparationProcess() {
@@ -265,12 +336,14 @@ struct ContentView: View {
                             self.processingState = .finished
                             self.statusMessage = "Separation Complete!"
                             if let files = response.data?.files {
-                                self.separationResults = files.map { apiFile in SeparatedFile(fileName: apiFile.download, downloadURL: apiFile.url) }
+                                self.separationResults = files.map { apiFile in
+                                    SeparatedFile(fileName: apiFile.download, downloadURL: apiFile.url)
+                                }
                             }
                         } else if response.status == "failed" {
                             self.statusTimer?.cancel()
                             self.processingState = .failed
-                            self.statusMessage = "The separation process failed on the server."
+                            self.statusMessage = response.data?.message ?? "The separation process failed on the server."
                         }
                     case .failure(let error):
                         self.statusTimer?.cancel()
@@ -287,10 +360,60 @@ struct ContentView: View {
         let destinationURL = outputDir.appendingPathComponent(file.fileName)
         
         APIService.shared.downloadFile(fromURL: file.downloadURL, to: destinationURL) { result in
+            // Download completion/failure logic would go here in a future update
             switch result {
             case .success(_): print("Download complete for \(file.fileName)")
             case .failure(let error): print("Download failed for \(file.fileName): \(error.localizedDescription)")
             }
+        }
+    }
+}
+
+// A dedicated view for the picker's popover content
+struct ModelPickerView: View {
+    let sortedModels: [SeparationModel]
+    @Binding var favoriteIDs: Set<Int>
+    @Binding var selectedModel: SeparationModel
+    @Binding var isShowingPopover: Bool
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(sortedModels) { model in
+                    HStack {
+                        // The text part selects the model and dismisses the popover
+                        Text(model.name)
+                            .padding(.vertical, 6)
+                            .contentShape(Rectangle()) // Makes the whole text area tappable
+                            .onTapGesture {
+                                self.selectedModel = model
+                                self.isShowingPopover = false
+                            }
+                        
+                        Spacer()
+                        
+                        // The star button just toggles the favorite status
+                        Button(action: {
+                            toggleFavorite(for: model)
+                        }) {
+                            Image(systemName: favoriteIDs.contains(model.id) ? "star.fill" : "star")
+                                .foregroundColor(favoriteIDs.contains(model.id) ? .yellow : .secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal)
+                }
+            }
+        }
+        .frame(minHeight: 100, maxHeight: 300)
+        .padding(.vertical, 5)
+    }
+    
+    private func toggleFavorite(for model: SeparationModel) {
+        if favoriteIDs.contains(model.id) {
+            favoriteIDs.remove(model.id)
+        } else {
+            favoriteIDs.insert(model.id)
         }
     }
 }
