@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var selectedAdditionalOptions: [String: String] = [:]
     
     @State private var droppedFilePath: URL?
+    @AppStorage("outputLocationString") private var outputLocationString: String = ""
     @State private var outputLocation: URL?
     @State private var processingState: ProcessingState = .idle
     @State private var statusMessage: String = "Drag & Drop Audio File"
@@ -32,6 +33,12 @@ struct ContentView: View {
                     initialOptions[option.parameterName] = firstValue.parameterValue
                 }
             }
+        }
+        // Load the saved URL string at startup
+        if !outputLocationString.isEmpty {
+            _outputLocation = State(initialValue: URL(string: outputLocationString))
+        } else {
+            _outputLocation = State(initialValue: nil)
         }
         _selectedAdditionalOptions = State(initialValue: initialOptions)
     }
@@ -210,7 +217,8 @@ struct ContentView: View {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        if panel.runModal() == .OK { self.outputLocation = panel.url }
+        if panel.runModal() == .OK { self.outputLocation = panel.url
+            self.outputLocationString = panel.url?.absoluteString ?? "" }
     }
     
     private func startSeparationProcess() {
