@@ -8,7 +8,6 @@ struct ContentView: View {
     @AppStorage("apiKey") private var apiKey: String = ""
     @AppStorage("outputLocationString") private var outputLocationString: String = ""
     @AppStorage("favoriteModelIDsString") private var favoriteModelIDsString: String = ""
-    @AppStorage("localJobHistory") private var localJobHistoryData: Data = Data()
     
     @State private var showingSettings = false
     @State private var selectedModel: SeparationModel
@@ -222,13 +221,7 @@ struct ContentView: View {
         processingState = .idle
         statusMessage = message ?? (droppedFilePath?.lastPathComponent ?? "Drag & Drop Audio File")
     }
-    
-    private func saveJobToHistory(hash: String) {
-        var history = (try? JSONDecoder().decode([LocalJob].self, from: localJobHistoryData)) ?? []
-        let newJob = LocalJob(hash: hash, inputFileName: droppedFilePath?.lastPathComponent ?? "Unknown File", modelName: selectedModel.name, submissionDate: Date())
-        history.insert(newJob, at: 0)
-        if let updatedData = try? JSONEncoder().encode(history) { localJobHistoryData = updatedData }
-    }
+
     
     private func toggleFavorite(for model: SeparationModel) {
         if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) }
@@ -260,7 +253,7 @@ struct ContentView: View {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let hash):
-                    self.activeTaskHash = hash; self.saveJobToHistory(hash: hash)
+                    self.activeTaskHash = hash;
                     self.processingState = .processing; self.statusMessage = "File uploaded. Waiting for processing..."
                     self.startStatusTimer()
                 case .failure(let error): self.resetToIdleState(message: error.localizedDescription)

@@ -131,6 +131,44 @@ class APIService {
         task.resume()
     }
     
+    // MARK: - Fetch History
+    func fetchHistory(apiKey: String, start: Int = 0, limit: Int = 20, completion: @escaping (Result<[HistoryJob], Error>) -> Void) {
+        guard var components = URLComponents(string: "https://mvsep.com/api/app/separation_history") else {
+            completion(.failure(APIError.invalidResponse))
+            return
+        }
+        
+        components.queryItems = [
+            URLQueryItem(name: "api_token", value: apiKey),
+            URLQueryItem(name: "start", value: "\(start)"),
+            URLQueryItem(name: "limit", value: "\(limit)")
+        ]
+        
+        guard let url = components.url else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let data = data else {
+                completion(.failure(APIError.invalidResponse))
+                return
+            }
+            
+            do {
+                let result = try JSONDecoder().decode(HistoryResponse.self, from: data)
+                if result.success {
+                    completion(.success(result.data))
+                } else {
+                    completion(.failure(APIError.apiError(message: "Failed to fetch history. Check API Key.")))
+                }
+            } catch {
+                completion(.failure(APIError.invalidResponse))
+            }
+        }.resume()
+    }
+    
     private func createDataField(name: String, value: String, boundary: String) -> Data {
         var field = "--\(boundary)\r\n"
         field += "Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n"

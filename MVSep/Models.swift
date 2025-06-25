@@ -19,6 +19,25 @@ struct SeparationModel: Identifiable, Hashable {
     let additionalOptions: [AdditionalOption]?
 }
 
+struct HistoryAlgorithm: Codable, Hashable {
+    let name: String
+}
+
+struct HistoryJob: Codable, Identifiable, Hashable {
+    let id: Int
+    let hash: String
+    let created_at: String
+    let job_exists: Bool
+    let credits: Int?
+    let time_left: Int?
+    let algorithm: HistoryAlgorithm
+}
+
+struct HistoryResponse: Codable {
+    let success: Bool
+    let data: [HistoryJob]
+}
+
 struct OutputFormat: Identifiable, Hashable {
     let id: Int
     let name: String
@@ -30,13 +49,7 @@ struct SeparatedFile: Identifiable, Hashable {
     let downloadURL: String
 }
 
-struct LocalJob: Codable, Identifiable, Hashable {
-    var id: String { hash }
-    let hash: String
-    let inputFileName: String
-    let modelName: String
-    let submissionDate: Date
-}
+
 
 // MARK: - API Response Structures
 

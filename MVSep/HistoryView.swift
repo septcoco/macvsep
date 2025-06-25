@@ -1,15 +1,18 @@
 import SwiftUI
 
 struct HistoryView: View {
-    @AppStorage("localJobHistory") private var localJobHistoryData: Data = Data()
+    @AppStorage("apiKey") private var apiKey: String = ""
     @Environment(\.presentationMode) var presentationMode
     
     let outputLocation: URL?
     
-    @State private var historyJobs: [LocalJob] = []
+    @State private var historyJobs: [HistoryJob] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     
     var body: some View {
         VStack(spacing: 0) {
+            // Header
             HStack {
                 Text("Separation History")
                     .font(.largeTitle)
@@ -23,7 +26,15 @@ struct HistoryView: View {
             .padding()
             .background(.ultraThinMaterial)
             
-            if historyJobs.isEmpty {
+            // Content
+            if isLoading {
+                ProgressView("Loading History...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let errorMessage = errorMessage {
+                Text("Error: \(errorMessage)")
+                    .foregroundColor(.red)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if historyJobs.isEmpty {
                 VStack {
                     Image(systemName: "clock.fill")
                         .font(.largeTitle)
@@ -47,37 +58,54 @@ struct HistoryView: View {
     }
     
     private func loadHistory() {
-        if let decodedJobs = try? JSONDecoder().decode([LocalJob].self, from: localJobHistoryData) {
-            self.historyJobs = decodedJobs
+        isLoading = true
+        errorMessage = nil
+        APIService.shared.fetchHistory(apiKey: apiKey) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let jobs):
+                    self.historyJobs = jobs
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+                self.isLoading = false
+            }
         }
     }
 }
 
 struct HistoryRowView: View {
-    let job: LocalJob
+    let job: HistoryJob
     let outputLocation: URL?
     
-    @State private var liveStatus: String?
-    @State private var downloadLinks: [APIFileResult] = []
-    
+    @State private var liveStatus: StatusResponse?
     @State private var isDownloading = false
     @State private var downloadFinished = false
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 5) {
-                Text(job.inputFileName)
+                Text(liveStatus?.data?.files?.first?.download ?? job.hash)
                     .fontWeight(.bold)
                     .lineLimit(1)
-                Text(job.modelName)
+                
+                Text(job.algorithm.name)
                     .font(.subheadline)
-                Text(job.submissionDate, style: .date)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                
+                HStack {
+                    Text(job.created_at)
+                    if let timeLeft = job.time_left {
+                        Text("• Expires in: ~\(timeLeft) hrs")
+                    }
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
             }
+            
             Spacer()
-            if let status = liveStatus {
-                if status.lowercased() == "done" {
+            
+            if let status = liveStatus?.status {
+                if status.lowercased() == "done" && job.job_exists {
                     Button(action: reDownload) {
                         if isDownloading {
                             ProgressView().controlSize(.small)
@@ -92,7 +120,7 @@ struct HistoryRowView: View {
                     .disabled(outputLocation == nil || isDownloading)
                     .help("Re-download to your currently selected output folder")
                 } else {
-                    Text(status.capitalized)
+                    Text(job.job_exists ? status.capitalized : "Expired")
                         .font(.headline)
                         .foregroundColor(statusColor(for: status))
                 }
@@ -101,42 +129,37 @@ struct HistoryRowView: View {
             }
         }
         .padding(.vertical, 8)
-        .opacity(liveStatus == "Expired" ? 0.5 : 1.0)
+        .opacity(job.job_exists ? 1.0 : 0.5)
         .onAppear(perform: checkLiveStatus)
     }
     
     private func checkLiveStatus() {
         APIService.shared.checkStatus(hash: job.hash) { result in
             DispatchQueue.main.async {
-                switch result {
-                case .success(let response):
-                    if response.status == "not_found" {
-                        self.liveStatus = "Expired"
-                    } else {
-                        self.liveStatus = response.status
-                        if response.status == "done" {
-                            self.downloadLinks = response.data?.files ?? []
-                        }
-                    }
-                case .failure:
-                    self.liveStatus = "Error"
+                if case .success(let response) = result {
+                    self.liveStatus = response
+                } else {
+                    self.liveStatus = StatusResponse(success: false, status: "Error", data: nil)
                 }
             }
         }
     }
     
     private func reDownload() {
-        guard let outputDir = outputLocation, !downloadLinks.isEmpty else { return }
+        guard let outputDir = outputLocation, let files = liveStatus?.data?.files, !files.isEmpty else { return }
+        
         isDownloading = true
         downloadFinished = false
         let dispatchGroup = DispatchGroup()
-        for fileResult in downloadLinks {
+        
+        for fileResult in files {
             dispatchGroup.enter()
             let destinationURL = outputDir.appendingPathComponent(fileResult.download)
-            APIService.shared.downloadFile(fromURL: fileResult.url, to: destinationURL) { result in
+            APIService.shared.downloadFile(fromURL: fileResult.url, to: destinationURL) { _ in
                 dispatchGroup.leave()
             }
         }
+        
         dispatchGroup.notify(queue: .main) {
             isDownloading = false
             downloadFinished = true
@@ -149,8 +172,8 @@ struct HistoryRowView: View {
     private func statusColor(for status: String) -> Color {
         switch status.lowercased() {
         case "done": return .green
-        case "failed", "error", "expired": return .red
-        default: return .orange
+        case "failed", "error": return .red
+        default: return job.job_exists ? .orange : .secondary
         }
     }
 }
