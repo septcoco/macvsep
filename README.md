@@ -1,5 +1,5 @@
 # MacVSep
-### v0.5.4 - First Beta
+### v0.6.0 - True History Beta
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
@@ -14,8 +14,7 @@ A sleek, modern macOS client for the Mvsep music separation API.
 *   **Favorite Models:** Pin your most-used models to the top of the list for quick access!
 *   **Full Model Support:** Access to all of MVSep's separation models, including those with additional specific options.
 *   **Real-time Progress:** Watch the status of your separation update from "Uploading" to "Waiting" (meaning you are in queue) to "Processing" to "Done".
-*   **Interactive Local History:** A persistent, locally stored history of all your separation jobs. Re-download completed jobs directly from the history panel.
-*   **Direct Downloads:** Download your separated files directly to a folder of your choosing.
+*   **Official Server-Side History:** View a complete history of all your jobs, including those from the website. Re-download files, see expiration times, and get real-time status updates directly from the server.
 *   **Persistent Output Location:** Remembers the last used output folder between app launches.
 
 Please note that you will need an API Key that you can retrieve by following the instructions in the settings, and can only be obtained by creating an account on the website!
@@ -35,8 +34,8 @@ Here are some of the features and improvements planned for future versions:
 #### Core Functionality
 *   [x] **Persistent Output Location:** Remember the last used output folder between app launches.
 *   [x] **Favorite Models:** Allow users to mark models as favorites to pin them to the top of the list.
-*   [x] **History:** Keep a history of past separation jobs, which automatically clears after 72 hours (to match Mvsep's server retention).
-*   [ ] **Official API History:** Upgrade the History feature to use the official `GET /api/app/separation_history` endpoint. This will provide authoritative server-side history, including `job_exists`, `credits_used`, and `time_left` information.
+*   [x] **Local History:** Keep a history of past separation jobs, which automatically clears after 72 hours (to match Mvsep's server retention).
+*   [x] **Official API History:** Upgrade the History feature to use the official `GET /api/app/separation_history` endpoint. This will provide authoritative server-side history, including `job_exists`, `credits_used`, and `time_left` information.
 *   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (Requires a "Premium Account" setting to handle job limits).
 *   [ ] **Expanded Output Formats (via FFmpeg)**
 *   [ ] **Cancel Button**
