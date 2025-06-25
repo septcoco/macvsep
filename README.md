@@ -39,7 +39,6 @@ Here are some of the features and improvements planned for future versions:
 *   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (Requires a "Premium Account" setting to handle job limits).
 *   [ ] **Expanded Output Formats (via FFmpeg)**
 *   [ ] **Cancel Button**
-*   [ ] **UI for Text-Based Models:** Implement a text input field for models like `Stable Audio Open Gen`.
 
 #### UI & User Experience
 *   [x] **Improved File Input:** Allow users to also click the drop zone to open a file selection dialog.
