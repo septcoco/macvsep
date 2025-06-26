@@ -9,6 +9,9 @@ struct ContentView: View {
     @AppStorage("outputLocationString") private var outputLocationString: String = ""
     @AppStorage("favoriteModelIDsString") private var favoriteModelIDsString: String = ""
     
+    @AppStorage("selectedPresetName") private var selectedPresetName: String = "Default"
+    @AppStorage("accentColorData") private var accentColorData: Data = Data()
+    
     @State private var showingSettings = false
     @State private var selectedModel: SeparationModel
     @State private var selectedOutputFormat: OutputFormat
@@ -51,9 +54,7 @@ struct ContentView: View {
         _selectedAdditionalOptions = State(initialValue: initialOptions)
     }
     
-    enum ProcessingState {
-        case idle, uploading, processing, finished, failed
-    }
+    enum ProcessingState { case idle, uploading, processing, finished, failed }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -65,17 +66,11 @@ struct ContentView: View {
                     controls
                     actionButton
                     if processingState == .uploading || processingState == .processing {
-                        VStack {
-                            ProgressView().scaleEffect(1.5)
-                            Text(statusMessage).padding(.top, 8)
-                        }
+                        VStack { ProgressView().scaleEffect(1.5); Text(statusMessage).padding(.top, 8) }
                     }
-                    if processingState == .finished && !separationResults.isEmpty {
-                        resultsView
-                    }
+                    if processingState == .finished && !separationResults.isEmpty { resultsView }
                     if processingState == .failed && statusMessage != "Drag & Drop Audio File" {
-                        Text("Error: \(statusMessage)")
-                            .foregroundColor(.red).padding().background(.regularMaterial).cornerRadius(16)
+                        Text("Error: \(statusMessage)").foregroundColor(.red).padding().background(.regularMaterial).cornerRadius(16)
                     }
                 }
                 .padding(32)
@@ -85,35 +80,37 @@ struct ContentView: View {
         .sheet(isPresented: $showingSettings) { SettingsView() }
         .sheet(isPresented: $isShowingHistory) { HistoryView(outputLocation: outputLocation) }
         .onChange(of: selectedModel) {
-            var defaultOptions: [String: String] = [:]
-            if let options = selectedModel.additionalOptions {
-                for option in options {
-                    if let firstValue = option.values.first {
-                        defaultOptions[option.parameterName] = firstValue.parameterValue
-                    }
-                }
+            var defaultOptions: [String: String] = [:]; if let options = selectedModel.additionalOptions {
+                for option in options { if let firstValue = option.values.first { defaultOptions[option.parameterName] = firstValue.parameterValue } }
             }
             selectedAdditionalOptions = defaultOptions
         }
-        .onChange(of: favoriteIDs) {
-            favoriteModelIDsString = favoriteIDs.map { String($0) }.joined(separator: ",")
-        }
+        .onChange(of: favoriteIDs) { favoriteModelIDsString = favoriteIDs.map { String($0) }.joined(separator: ",") }
+        .accentColor(loadedAccentColor)
     }
 
     private var sortedModels: [SeparationModel] {
-        AppData.models.sorted { (modelA, modelB) -> Bool in
-            let isAFavorite = favoriteIDs.contains(modelA.id)
-            let isBFavorite = favoriteIDs.contains(modelB.id)
-            if isAFavorite && !isBFavorite { return true }
-            else if !isAFavorite && isBFavorite { return false }
-            else { return modelA.name < modelB.name }
+        AppData.models.sorted { (a, b) in
+            let isAFavorite = favoriteIDs.contains(a.id); let isBFavorite = favoriteIDs.contains(b.id)
+            if isAFavorite && !isBFavorite { return true } else if !isAFavorite && isBFavorite { return false } else { return a.name < b.name }
         }
+    }
+    
+    private var backgroundGradient: some View {
+        let selectedPreset = AppearanceManager.presets.first { $0.name == selectedPresetName } ?? AppearanceManager.presets.first!
+        return LinearGradient(gradient: Gradient(colors: selectedPreset.colors), startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
+    }
+    
+    private var loadedAccentColor: Color {
+        if let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: accentColorData) {
+            return Color(nsColor)
+        }
+        return .accentColor
     }
 
     private var headerView: some View {
         HStack {
-            Text("MacVSep").font(.largeTitle).bold()
-            Spacer()
+            Text("MacVSep").font(.largeTitle).bold(); Spacer()
             Button(action: { isShowingHistory = true }) { Image(systemName: "clock.arrow.circlepath").font(.title2) }.buttonStyle(.plain)
             Button(action: { showingSettings.toggle() }) { Image(systemName: "gearshape.fill").font(.title2) }.buttonStyle(.plain)
         }
@@ -131,12 +128,7 @@ struct ContentView: View {
         .onDrop(of: ["public.file-url"], isTargeted: $isTargeted) { providers -> Bool in
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
                 if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-                    DispatchQueue.main.async {
-                        self.droppedFilePath = url
-                        self.statusMessage = url.lastPathComponent
-                        self.separationResults = []
-                        self.processingState = .idle
-                    }
+                    DispatchQueue.main.async { self.droppedFilePath = url; self.statusMessage = url.lastPathComponent; self.separationResults = []; self.processingState = .idle }
                 }
             })
             return true
@@ -144,17 +136,11 @@ struct ContentView: View {
         .onTapGesture { showOpenFilePanel() }
     }
     
-    private var backgroundGradient: some View {
-        LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)]), startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
-    }
-
     private var outputLocationView: some View {
         VStack(alignment: .leading) {
             Text("Output Location").font(.headline)
             HStack {
-                Image(systemName: "folder.fill").foregroundColor(.accentColor)
-                Text(outputLocation?.lastPathComponent ?? "Choose a folder...").font(.callout).lineLimit(1)
-                Spacer()
+                Image(systemName: "folder.fill").foregroundColor(.accentColor); Text(outputLocation?.lastPathComponent ?? "Choose a folder...").font(.callout).lineLimit(1); Spacer()
                 Button("Choose...", action: showSavePanel)
             }
         }
@@ -169,17 +155,13 @@ struct ContentView: View {
                     HStack { Text(selectedModel.name); Spacer(); Image(systemName: "chevron.up.chevron.down").font(.caption) }
                     .padding(8).background(Color(nsColor: .controlBackgroundColor)).cornerRadius(5)
                 }
-                .buttonStyle(.plain)
-                .popover(isPresented: $isShowingModelPicker, arrowEdge: .bottom) {
+                .buttonStyle(.plain).popover(isPresented: $isShowingModelPicker, arrowEdge: .bottom) {
                     ModelPickerView(sortedModels: sortedModels, favoriteIDs: $favoriteIDs, selectedModel: $selectedModel, isShowingPopover: $isShowingModelPicker)
                 }
             }
             if let additionalOptions = selectedModel.additionalOptions {
                 ForEach(additionalOptions, id: \.self) { option in
-                    let binding = Binding<String>(
-                        get: { self.selectedAdditionalOptions[option.parameterName] ?? "" },
-                        set: { self.selectedAdditionalOptions[option.parameterName] = $0 }
-                    )
+                    let binding = Binding<String>(get: { self.selectedAdditionalOptions[option.parameterName] ?? "" }, set: { self.selectedAdditionalOptions[option.parameterName] = $0 })
                     Picker(option.uiName, selection: binding) {
                         ForEach(option.values, id: \.self) { value in Text(value.displayName).tag(value.parameterValue) }
                     }
@@ -216,12 +198,9 @@ struct ContentView: View {
     }
     
     private func resetToIdleState(message: String? = nil) {
-        statusTimer?.cancel()
-        activeTaskHash = nil
-        processingState = .idle
+        statusTimer?.cancel(); activeTaskHash = nil; processingState = .idle
         statusMessage = message ?? (droppedFilePath?.lastPathComponent ?? "Drag & Drop Audio File")
     }
-
     
     private func toggleFavorite(for model: SeparationModel) {
         if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) }
@@ -253,8 +232,7 @@ struct ContentView: View {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let hash):
-                    self.activeTaskHash = hash;
-                    self.processingState = .processing; self.statusMessage = "File uploaded. Waiting for processing..."
+                    self.activeTaskHash = hash; self.processingState = .processing; self.statusMessage = "File uploaded. Waiting for processing..."
                     self.startStatusTimer()
                 case .failure(let error): self.resetToIdleState(message: error.localizedDescription)
                 }
@@ -271,8 +249,7 @@ struct ContentView: View {
                     switch result {
                     case .success(let response):
                         if response.status == "done" {
-                            self.statusTimer?.cancel(); self.processingState = .finished
-                            self.statusMessage = "Separation Complete!"
+                            self.statusTimer?.cancel(); self.processingState = .finished; self.statusMessage = "Separation Complete!"
                             if let files = response.data?.files {
                                 self.separationResults = files.map { apiFile in SeparatedFile(fileName: apiFile.download, downloadURL: apiFile.url) }
                             }
@@ -299,21 +276,16 @@ struct ContentView: View {
 }
 
 struct ModelPickerView: View {
-    let sortedModels: [SeparationModel]
-    @Binding var favoriteIDs: Set<Int>
-    @Binding var selectedModel: SeparationModel
-    @Binding var isShowingPopover: Bool
+    let sortedModels: [SeparationModel]; @Binding var favoriteIDs: Set<Int>; @Binding var selectedModel: SeparationModel; @Binding var isShowingPopover: Bool
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(sortedModels) { model in
                     HStack {
-                        Text(model.name).padding(.vertical, 6).contentShape(Rectangle())
-                            .onTapGesture { self.selectedModel = model; self.isShowingPopover = false }
+                        Text(model.name).padding(.vertical, 6).contentShape(Rectangle()).onTapGesture { self.selectedModel = model; self.isShowingPopover = false }
                         Spacer()
                         Button(action: { toggleFavorite(for: model) }) {
-                            Image(systemName: favoriteIDs.contains(model.id) ? "star.fill" : "star")
-                                .foregroundColor(favoriteIDs.contains(model.id) ? .yellow : .secondary)
+                            Image(systemName: favoriteIDs.contains(model.id) ? "star.fill" : "star").foregroundColor(favoriteIDs.contains(model.id) ? .yellow : .secondary)
                         }
                         .buttonStyle(.plain)
                     }
@@ -324,7 +296,6 @@ struct ModelPickerView: View {
         .frame(minHeight: 100, maxHeight: 300).padding(.vertical, 5)
     }
     private func toggleFavorite(for model: SeparationModel) {
-        if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) }
-        else { favoriteIDs.insert(model.id) }
+        if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) } else { favoriteIDs.insert(model.id) }
     }
 }

@@ -1,17 +1,13 @@
-//
-//  MVSepApp.swift
-//  MVSep
-//
-//  Created by Cupcake Eater on 24/06/2025.
-//
-
 import SwiftUI
 
 @main
 struct MVSepApp: App {
+    @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
+
     var body: some Scene {
         WindowGroup("MacVSep") {
             ContentView()
+                .preferredColorScheme(appearanceMode.colorScheme)
         }
     }
 }
