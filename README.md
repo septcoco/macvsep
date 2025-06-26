@@ -39,7 +39,7 @@ Here are some of the features and improvements planned for future versions:
 *   [x] **Official API History:** Upgrade the History feature to use the official `GET /api/app/separation_history` endpoint. This will provide authoritative server-side history, including `job_exists`, `credits_used`, and `time_left` information.
 *   [ ] **Batch Processing:** Allow users to queue up multiple files for separation. (Requires a "Premium Account" setting to handle job limits).
 *   [ ] **Expanded Output Formats (via FFmpeg)**
-*   [ ] **Cancel Button**
+*   [x] **Cancel Button**
 
 #### UI & User Experience
 *   [x] **Improved File Input:** Allow users to also click the drop zone to open a file selection dialog.
