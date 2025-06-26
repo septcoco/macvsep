@@ -86,7 +86,6 @@ struct ContentView: View {
             selectedAdditionalOptions = defaultOptions
         }
         .onChange(of: favoriteIDs) { favoriteModelIDsString = favoriteIDs.map { String($0) }.joined(separator: ",") }
-        .accentColor(loadedAccentColor)
     }
 
     private var sortedModels: [SeparationModel] {
