@@ -1,5 +1,5 @@
 # MacVSep
-### v0.7.0 - Oblongifolius Beta
+### v0.7.1 - Oblongifolius Beta
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
