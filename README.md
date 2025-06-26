@@ -9,6 +9,7 @@ A sleek, modern macOS client for the Mvsep music separation API.
 
 ## ✨ Features
 
+*   **Full Appearance Customization:** Make the app your own! Change the background with presets or a custom gradient, pick a new accent color, and force Light/Dark mode from the Settings panel.
 *   **Modern UI:** A clean, translucent interface built with the latest SwiftUI standards for macOS.
 *   **Flexible File Input:** Drag & Drop your audio file OR simply click the drop zone to select a file.
 *   **Favorite Models:** Pin your most-used models to the top of the list for quick access!
