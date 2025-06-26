@@ -1,5 +1,5 @@
 # MacVSep
-### v0.6.0 - True History Beta
+### v0.7.0 - Oblongifolius Beta
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
@@ -44,7 +44,7 @@ Here are some of the features and improvements planned for future versions:
 *   [x] **Improved File Input:** Allow users to also click the drop zone to open a file selection dialog.
 *   [ ] **Model Leaderboard/Usage Stats:** Display a list of popular or most-used models (potentially based on community data or user's own usage).
 *   [ ] **Enhanced UI/UX:** General improvements to the visual design and user flow.
-*   [ ] **Background Customization:** Add options in Settings to change the app's background gradient.
+*   [x] **Background Customization:** Add options in Settings to change the app's background gradient.
 
 #### Community & Project
 *   [ ] **Community:**
