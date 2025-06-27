@@ -1,5 +1,5 @@
 # MacVSep
-### v0.7.1 - Oblongifolius Beta
+### v0.8.0 - Dongba Beta
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
@@ -9,15 +9,13 @@ A sleek, modern macOS client for the Mvsep music separation API.
 
 ## ✨ Features
 
-*   **Full Appearance Customization:** Make the app your own! Change the background with presets or a custom gradient, pick a new accent color, and force Light/Dark mode from the Settings panel.
-*   **Modern UI:** A clean, translucent interface built with the latest SwiftUI standards for macOS.
-*   **Flexible File Input:** Drag & Drop your audio file OR simply click the drop zone to select a file.
-*   **Favorite Models:** Pin your most-used models to the top of the list for quick access!
-*   **Full Model Support:** Access to all of MVSep's separation models, including those with additional specific options.
-*   **Real-time Progress:** Watch the status of your separation update from "Uploading" to "Waiting" (meaning you are in queue) to "Processing" to "Done".
-*   **Official Server-Side History:** View a complete history of all your jobs, including those from the website. Re-download files, see expiration times, and get real-time status updates directly from the server.
-*   **Persistent Output Location:** Remembers the last used output folder between app launches.
-
+*   **Full Appearance Customization:** Make the app your own! Change the background, pick a new accent color, and force Light/Dark mode.
+*   **Live Download Progress:** See real-time progress bars for all your downloads. Never guess if a file is downloading again!
+*   **User Feedback & Control:** Get pop-up alerts for download completion/failure and cancel a separation while it's processing.
+*   **Official Server-Side History:** View a complete history of all your jobs from the Mvsep server and re-download files.
+*   **Favorite Models:** Pin your most-used models to the top of the list for quick access.
+*   **Full Model Support:** Access to all of Mvsep's separation models.
+*   **Persistent Settings:** Remembers your API key, output folder, and favorite models.
 Please note that you will need an API Key that you can retrieve by following the instructions in the settings, and can only be obtained by creating an account on the website!
 
 ## 🚀 Download the Alpha
