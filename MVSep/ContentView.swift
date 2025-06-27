@@ -3,53 +3,36 @@ import Combine
 import UniformTypeIdentifiers
 
 struct ContentView: View {
-    // MARK: - State Variables
-    
     @AppStorage("apiKey") private var apiKey: String = ""
     @AppStorage("outputLocationString") private var outputLocationString: String = ""
     @AppStorage("favoriteModelIDsString") private var favoriteModelIDsString: String = ""
-    
     @AppStorage("selectedPresetName") private var selectedPresetName: String = "Default"
-    @AppStorage("accentColorData") private var accentColorData: Data = Data()
-    
+    @ColorAppStorage(wrappedValue: .accentColor, "accentColorHex") private var accentColor
+
     @State private var showingSettings = false
     @State private var selectedModel: SeparationModel
     @State private var selectedOutputFormat: OutputFormat
     @State private var selectedAdditionalOptions: [String: String] = [:]
-    
     @State private var favoriteIDs: Set<Int> = []
     @State private var isShowingModelPicker = false
     @State private var isShowingHistory = false
-    
     @State private var droppedFilePath: URL?
     @State private var outputLocation: URL?
     @State private var processingState: ProcessingState = .idle
     @State private var statusMessage: String = "Drag & Drop Audio File"
     @State private var separationResults: [SeparatedFile] = []
-    
     @State private var activeTaskHash: String?
     @State private var statusTimer: AnyCancellable?
     @State private var isTargeted = false
+    @State private var appAlert: AppAlert?
     
     init() {
-        let initialModel = AppData.models.first!
-        _selectedModel = State(initialValue: initialModel)
+        let initialModel = AppData.models.first!; _selectedModel = State(initialValue: initialModel)
         _selectedOutputFormat = State(initialValue: AppData.outputFormats.first!)
-        
-        if !outputLocationString.isEmpty, let url = URL(string: outputLocationString) {
-            _outputLocation = State(initialValue: url)
-        }
-        
-        let savedIDs = favoriteModelIDsString.split(separator: ",").compactMap { Int($0) }
-        _favoriteIDs = State(initialValue: Set(savedIDs))
-        
-        var initialOptions: [String: String] = [:]
-        if let options = initialModel.additionalOptions {
-            for option in options {
-                if let firstValue = option.values.first {
-                    initialOptions[option.parameterName] = firstValue.parameterValue
-                }
-            }
+        if !outputLocationString.isEmpty, let url = URL(string: outputLocationString) { _outputLocation = State(initialValue: url) }
+        let savedIDs = favoriteModelIDsString.split(separator: ",").compactMap { Int($0) }; _favoriteIDs = State(initialValue: Set(savedIDs))
+        var initialOptions: [String: String] = [:]; if let options = initialModel.additionalOptions {
+            for option in options { if let firstValue = option.values.first { initialOptions[option.parameterName] = firstValue.parameterValue } }
         }
         _selectedAdditionalOptions = State(initialValue: initialOptions)
     }
@@ -61,10 +44,7 @@ struct ContentView: View {
             headerView
             ScrollView {
                 VStack(spacing: 24) {
-                    dropZone
-                    outputLocationView
-                    controls
-                    actionButton
+                    dropZone; outputLocationView; controls; actionButton
                     if processingState == .uploading || processingState == .processing {
                         VStack { ProgressView().scaleEffect(1.5); Text(statusMessage).padding(.top, 8) }
                     }
@@ -86,6 +66,7 @@ struct ContentView: View {
             selectedAdditionalOptions = defaultOptions
         }
         .onChange(of: favoriteIDs) { favoriteModelIDsString = favoriteIDs.map { String($0) }.joined(separator: ",") }
+        .tint(accentColor)
     }
 
     private var sortedModels: [SeparationModel] {
@@ -96,15 +77,8 @@ struct ContentView: View {
     }
     
     private var backgroundGradient: some View {
-        let selectedPreset = AppearanceManager.presets.first { $0.name == selectedPresetName } ?? AppearanceManager.presets.first!
-        return LinearGradient(gradient: Gradient(colors: selectedPreset.colors), startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
-    }
-    
-    private var loadedAccentColor: Color {
-        if let nsColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: accentColorData) {
-            return Color(nsColor)
-        }
-        return .accentColor
+        let preset = AppearanceManager.presets.first { $0.name == selectedPresetName } ?? AppearanceManager.presets.first!
+        return LinearGradient(gradient: Gradient(colors: preset.colors), startPoint: .topLeading, endPoint: .bottomTrailing).ignoresSafeArea()
     }
 
     private var headerView: some View {
@@ -127,7 +101,7 @@ struct ContentView: View {
         .onDrop(of: ["public.file-url"], isTargeted: $isTargeted) { providers -> Bool in
             providers.first?.loadDataRepresentation(forTypeIdentifier: "public.file-url", completionHandler: { (data, error) in
                 if let data = data, let path = NSString(data: data, encoding: 4), let url = URL(string: path as String) {
-                    DispatchQueue.main.async { self.droppedFilePath = url; self.statusMessage = url.lastPathComponent; self.separationResults = []; self.processingState = .idle }
+                    DispatchQueue.main.async { resetForNewFile(with: url) }
                 }
             })
             return true
@@ -139,7 +113,7 @@ struct ContentView: View {
         VStack(alignment: .leading) {
             Text("Output Location").font(.headline)
             HStack {
-                Image(systemName: "folder.fill").foregroundColor(.accentColor); Text(outputLocation?.lastPathComponent ?? "Choose a folder...").font(.callout).lineLimit(1); Spacer()
+                Image(systemName: "folder.fill").foregroundColor(accentColor); Text(outputLocation?.lastPathComponent ?? "Choose a folder...").font(.callout).lineLimit(1); Spacer()
                 Button("Choose...", action: showSavePanel)
             }
         }
@@ -161,37 +135,33 @@ struct ContentView: View {
             if let additionalOptions = selectedModel.additionalOptions {
                 ForEach(additionalOptions, id: \.self) { option in
                     let binding = Binding<String>(get: { self.selectedAdditionalOptions[option.parameterName] ?? "" }, set: { self.selectedAdditionalOptions[option.parameterName] = $0 })
-                    Picker(option.uiName, selection: binding) {
-                        ForEach(option.values, id: \.self) { value in Text(value.displayName).tag(value.parameterValue) }
-                    }
-                    .pickerStyle(MenuPickerStyle())
+                    Picker(option.uiName, selection: binding) { ForEach(option.values, id: \.self) { value in Text(value.displayName).tag(value.parameterValue) } }.pickerStyle(MenuPickerStyle())
                 }
             }
-            Picker("Output Format", selection: $selectedOutputFormat) {
-                ForEach(AppData.outputFormats) { format in Text(format.name).tag(format) }
-            }
-            .pickerStyle(MenuPickerStyle())
+            Picker("Output Format", selection: $selectedOutputFormat) { ForEach(AppData.outputFormats) { format in Text(format.name).tag(format) } }.pickerStyle(MenuPickerStyle())
         }
         .padding(20).background(.regularMaterial).cornerRadius(16)
     }
     
     private var actionButton: some View {
-        Button(action: startSeparationProcess) {
-            HStack { Image(systemName: "sparkles"); Text("Separate") }.font(.title3.bold()).frame(maxWidth: .infinity)
+        Group {
+            if processingState == .uploading || processingState == .processing {
+                Button(role: .destructive, action: { resetToIdleState(message: "Operation cancelled.") }) {
+                    HStack { Image(systemName: "xmark.circle.fill"); Text("Cancel") }.font(.title3.bold()).frame(maxWidth: .infinity)
+                }.buttonStyle(.borderedProminent).controlSize(.large).tint(.red)
+            } else {
+                Button(action: startSeparationProcess) {
+                    HStack { Image(systemName: "sparkles"); Text("Separate") }.font(.title3.bold()).frame(maxWidth: .infinity)
+                }.buttonStyle(.borderedProminent).controlSize(.large).disabled(processingState != .idle || droppedFilePath == nil || outputLocation == nil || apiKey.isEmpty)
+            }
         }
-        .buttonStyle(.borderedProminent).controlSize(.large)
-        .disabled(processingState != .idle || droppedFilePath == nil || outputLocation == nil || apiKey.isEmpty)
     }
 
     private var resultsView: some View {
         VStack(alignment: .leading) {
             Text("Results").font(.title2.bold()).padding(.bottom, 5)
             ForEach(separationResults) { file in
-                HStack {
-                    Image(systemName: "waveform"); Text(file.fileName); Spacer()
-                    Button(action: { downloadFile(file) }) { Image(systemName: "square.and.arrow.down") }.buttonStyle(.borderless)
-                }
-                .padding().background(.regularMaterial).cornerRadius(12)
+                DownloadRowView(file: file, outputLocation: outputLocation)
             }
         }
     }
@@ -201,27 +171,22 @@ struct ContentView: View {
         statusMessage = message ?? (droppedFilePath?.lastPathComponent ?? "Drag & Drop Audio File")
     }
     
-    private func toggleFavorite(for model: SeparationModel) {
-        if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) }
-        else { favoriteIDs.insert(model.id) }
+    private func resetForNewFile(with url: URL) {
+        droppedFilePath = url; statusMessage = url.lastPathComponent; separationResults = []; processingState = .idle; activeTaskHash = nil; statusTimer?.cancel()
     }
+    
+    private func toggleFavorite(for model: SeparationModel) { if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) } else { favoriteIDs.insert(model.id) } }
     
     private func showOpenFilePanel() {
         let panel = NSOpenPanel()
-        panel.canChooseFiles = true; panel.canChooseDirectories = false; panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.audio]
-        if panel.runModal() == .OK, let url = panel.url {
-            self.droppedFilePath = url; self.statusMessage = url.lastPathComponent
-            self.separationResults = []; self.processingState = .idle
-        }
+        panel.canChooseFiles = true; panel.canChooseDirectories = false; panel.allowsMultipleSelection = false; panel.allowedContentTypes = [.audio]
+        if panel.runModal() == .OK, let url = panel.url { resetForNewFile(with: url) }
     }
     
     private func showSavePanel() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.allowsMultipleSelection = false
-        if panel.runModal() == .OK, let url = panel.url {
-            self.outputLocation = url; self.outputLocationString = url.absoluteString
-        }
+        if panel.runModal() == .OK, let url = panel.url { outputLocation = url; outputLocationString = url.absoluteString }
     }
     
     private func startSeparationProcess() {
@@ -252,6 +217,7 @@ struct ContentView: View {
                             if let files = response.data?.files {
                                 self.separationResults = files.map { apiFile in SeparatedFile(fileName: apiFile.download, downloadURL: apiFile.url) }
                             }
+                            NotificationManager.shared.sendNotification(title: "Separation Complete", body: "Your file is ready for download.")
                         } else if response.status == "failed" {
                             self.resetToIdleState(message: response.data?.message ?? "The separation process failed on the server.")
                         } else { self.statusMessage = response.status.capitalized }
@@ -260,41 +226,5 @@ struct ContentView: View {
                 }
             }
         }
-    }
-    
-    private func downloadFile(_ file: SeparatedFile) {
-        guard let outputDir = outputLocation else { return }
-        let destinationURL = outputDir.appendingPathComponent(file.fileName)
-        APIService.shared.downloadFile(fromURL: file.downloadURL, to: destinationURL) { result in
-            switch result {
-            case .success(_): print("Download complete for \(file.fileName)")
-            case .failure(let error): print("Download failed for \(file.fileName): \(error.localizedDescription)")
-            }
-        }
-    }
-}
-
-struct ModelPickerView: View {
-    let sortedModels: [SeparationModel]; @Binding var favoriteIDs: Set<Int>; @Binding var selectedModel: SeparationModel; @Binding var isShowingPopover: Bool
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(sortedModels) { model in
-                    HStack {
-                        Text(model.name).padding(.vertical, 6).contentShape(Rectangle()).onTapGesture { self.selectedModel = model; self.isShowingPopover = false }
-                        Spacer()
-                        Button(action: { toggleFavorite(for: model) }) {
-                            Image(systemName: favoriteIDs.contains(model.id) ? "star.fill" : "star").foregroundColor(favoriteIDs.contains(model.id) ? .yellow : .secondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal)
-                }
-            }
-        }
-        .frame(minHeight: 100, maxHeight: 300).padding(.vertical, 5)
-    }
-    private func toggleFavorite(for model: SeparationModel) {
-        if favoriteIDs.contains(model.id) { favoriteIDs.remove(model.id) } else { favoriteIDs.insert(model.id) }
     }
 }

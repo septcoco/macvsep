@@ -49,6 +49,15 @@ struct SeparatedFile: Identifiable, Hashable {
     let downloadURL: String
 }
 
+struct LocalJob: Codable, Identifiable, Hashable {
+    var id: String { hash }
+    
+    let hash: String
+    let inputFileName: String
+    let modelName: String
+    let submissionDate: Date
+}
+
 
 
 // MARK: - API Response Structures

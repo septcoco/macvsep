@@ -10,6 +10,9 @@ struct MVSepApp: App {
             ContentView()
                 .preferredColorScheme(appearanceMode.colorScheme)
                 .tint(accentColor)
+                .onAppear {
+                    NotificationManager.shared.requestAuthorization()
+                }
         }
     }
 }

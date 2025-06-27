@@ -3,22 +3,21 @@ import UserNotifications
 
 class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
-    
     private let notificationCenter = UNUserNotificationCenter.current()
-    
+
     override private init() {
         super.init()
         notificationCenter.delegate = self
     }
-    
+
     func requestAuthorization() {
-        notificationCenter.requestAuthorization(options: [.alert, .sound]) { granted, error in
+        notificationCenter.requestAuthorization(options: [.alert, .sound]) { _, error in
             if let error = error {
                 print("Error requesting notification authorization: \(error.localizedDescription)")
             }
         }
     }
-    
+
     func sendNotification(title: String, body: String) {
         let content = UNMutableNotificationContent()
         content.title = title
@@ -27,8 +26,9 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
         notificationCenter.add(request)
     }
-    
+
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([])
+        // Suppress the banner when the app is active, but still allow the sound.
+        completionHandler([.sound, .list])
     }
 }
