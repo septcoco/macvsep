@@ -365,6 +365,7 @@ struct AppData {
             id: 40, name: "BS Roformer (vocals, instrumental)",
             additionalOptions: [
                 AdditionalOption(parameterName: "add_opt1", uiName: "Vocal Model Type", values: [
+                    OptionValue(displayName: "ver 2025.06", parameterValue: "81"),
                     OptionValue(displayName: "ver. 2024.02", parameterValue: "3"),
                     OptionValue(displayName: "viperx edition", parameterValue: "4"),
                     OptionValue(displayName: "ver 2024.04", parameterValue: "5"),
