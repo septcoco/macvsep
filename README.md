@@ -1,5 +1,5 @@
 # MacVSep
-### v0.8.0 - Dongba Beta
+### v0.8.1 - Dongba Beta
 
 A sleek, modern macOS client for the Mvsep music separation API.
 
