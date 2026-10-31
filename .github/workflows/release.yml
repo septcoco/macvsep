@@ -1,0 +1,84 @@
+name: Release
+
+# Push an annotated tag to publish a release:
+#   git tag -a v1.0.0 -m "Papyrus" -m "- What changed..."
+# The first line of the tag message is the release name, the rest are the release notes.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  SPARKLE_VERSION: 2.10.0
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read version and notes
+        id: info
+        run: |
+          git fetch --force --tags
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          IFS=. read -r MAJOR MINOR PATCH <<< "${VERSION%%-*}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build=$(( MAJOR * 10000 + MINOR * 100 + ${PATCH:-0} ))" >> "$GITHUB_OUTPUT"
+          echo "name=$(git tag -l --format='%(contents:subject)' "$TAG")" >> "$GITHUB_OUTPUT"
+          git tag -l --format='%(contents:body)' "$TAG" > notes.md
+
+      - name: Build
+        run: |
+          xcodebuild -project MVSep.xcodeproj -target MVSep -configuration Release \
+            -destination 'generic/platform=macOS' \
+            SYMROOT="$PWD/build" CODE_SIGN_IDENTITY=- \
+            MARKETING_VERSION=${{ steps.info.outputs.version }} \
+            CURRENT_PROJECT_VERSION=${{ steps.info.outputs.build }} build > build.log 2>&1 \
+            || { grep -E "error:" build.log; tail -40 build.log; exit 1; }
+          ditto -c -k --keepParent build/Release/MacVSep.app MacVSep.app.zip
+
+      - name: Sign update
+        id: sign
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          curl -sSL "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz" | tar -xJ -C "$RUNNER_TEMP"
+          echo "attributes=$(echo "$SPARKLE_PRIVATE_KEY" | "$RUNNER_TEMP/bin/sign_update" --ed-key-file - MacVSep.app.zip)" >> "$GITHUB_OUTPUT"
+
+      - name: Write appcast
+        run: |
+          TAG=${{ steps.info.outputs.tag }}
+          cat > appcast.xml <<APPCAST
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>MacVSep</title>
+              <item>
+                <title>${TAG} - ${{ steps.info.outputs.name }}</title>
+                <pubDate>$(LC_ALL=C date -u "+%a, %d %b %Y %H:%M:%S +0000")</pubDate>
+                <sparkle:version>${{ steps.info.outputs.build }}</sparkle:version>
+                <sparkle:shortVersionString>${{ steps.info.outputs.version }}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.6</sparkle:minimumSystemVersion>
+                <description sparkle:format="markdown"><![CDATA[$(cat notes.md)]]></description>
+                <enclosure url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/MacVSep.app.zip" type="application/octet-stream" ${{ steps.sign.outputs.attributes }} />
+              </item>
+            </channel>
+          </rss>
+          APPCAST
+          xmllint --noout appcast.xml
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.info.outputs.tag }}" MacVSep.app.zip appcast.xml \
+            --title "${{ steps.info.outputs.tag }} - ${{ steps.info.outputs.name }}" \
+            --notes-file notes.md

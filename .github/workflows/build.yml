@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Xcode version
         run: xcodebuild -version
@@ -24,11 +24,9 @@ jobs:
           grep -E "warning:" build.log | sort -u || true
 
       - name: Package
-        run: |
-          cd build/Release
-          ditto -c -k --keepParent MVSep.app MacVSep.app.zip
+        run: ditto -c -k --keepParent build/Release/MacVSep.app MacVSep.app.zip
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: MacVSep
-          path: build/Release/MacVSep.app.zip
+          path: MacVSep.app.zip
