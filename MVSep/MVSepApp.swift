@@ -4,6 +4,7 @@ import SwiftUI
 struct MVSepApp: App {
     @AppStorage("appearanceMode") private var appearanceMode: AppearanceMode = .system
     @ColorAppStorage(wrappedValue: .accentColor, "accentColorHex") private var accentColor
+    @State private var updater = Updater.shared
 
     var body: some Scene {
         WindowGroup("MacVSep") {
@@ -13,6 +14,12 @@ struct MVSepApp: App {
                 .onAppear {
                     NotificationManager.shared.requestAuthorization()
                 }
+        }
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { updater.checkForUpdates() }
+                    .disabled(!updater.canCheckForUpdates)
+            }
         }
     }
 }

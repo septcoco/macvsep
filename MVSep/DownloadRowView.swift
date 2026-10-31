@@ -2,43 +2,36 @@ import SwiftUI
 
 struct DownloadRowView: View {
     let file: SeparatedFile
-    let outputLocation: URL?
-    @State private var downloadProgress: Double = 0
-    @State private var isDownloading = false
-    @State private var downloadFinished = false
-    
+    let inputName: String
+    @State private var downloads = Downloads.shared
+    @State private var outputFolder = OutputFolder.shared
+
     var body: some View {
+        let state = downloads.state(for: file)
         VStack(alignment: .leading) {
             HStack {
-                Image(systemName: "waveform"); Text(file.fileName).lineLimit(1); Spacer()
-                Button(action: download) {
-                    if isDownloading { ProgressView().controlSize(.small) }
-                    else if downloadFinished { Image(systemName: "checkmark.circle.fill").foregroundColor(.green) }
-                    else { Image(systemName: "square.and.arrow.down") }
-                }.buttonStyle(.borderless).disabled(isDownloading || downloadFinished)
-            }
-            if isDownloading { ProgressView(value: downloadProgress).progressViewStyle(LinearProgressViewStyle()) }
-        }
-        .padding().background(.regularMaterial).cornerRadius(12)
-    }
-    
-    private func download() {
-        guard let outputDir = outputLocation else { return }
-        isDownloading = true; downloadProgress = 0
-        let destinationURL = outputDir.appendingPathComponent(file.fileName)
-        APIService.shared.downloadFile(fromURL: file.downloadURL, to: destinationURL, progressHandler: { progress in
-            DispatchQueue.main.async { self.downloadProgress = progress }
-        }) { result in
-            DispatchQueue.main.async {
-                self.isDownloading = false
-                switch result {
-                case .success:
-                    self.downloadFinished = true
-                    NotificationManager.shared.sendNotification(title: "Download Complete", body: "\(file.fileName) has been saved.")
-                case .failure(let error):
-                    NotificationManager.shared.sendNotification(title: "Download Failed", body: "Could not save \(file.fileName). Error: \(error.localizedDescription)")
+                Image(systemName: "waveform").foregroundColor(.secondary); Text(file.fileName).lineLimit(1).truncationMode(.middle); Spacer()
+                switch state {
+                case .downloading:
+                    ProgressView().controlSize(.small)
+                case .finished(let url):
+                    Button(action: { outputFolder.reveal(url) }) { Image(systemName: "checkmark.circle.fill").foregroundColor(.green) }
+                        .buttonStyle(.borderless).help("Show in Finder")
+                case .failed(let message):
+                    Button(action: download) { Image(systemName: "exclamationmark.arrow.circlepath").foregroundColor(.red) }
+                        .buttonStyle(.borderless).help("\(message)\nClick to retry.")
+                case nil:
+                    Button(action: download) { Image(systemName: "square.and.arrow.down") }
+                        .buttonStyle(.borderless).disabled(outputFolder.url == nil)
                 }
             }
+            if case .downloading(let progress) = state { ProgressView(value: progress).progressViewStyle(LinearProgressViewStyle()) }
         }
+        .padding(.horizontal, 12).padding(.vertical, 10)
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func download() {
+        Task { await downloads.download([file], inputName: inputName) }
     }
 }
