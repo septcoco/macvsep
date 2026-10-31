@@ -1,8 +1,9 @@
 name: Release
 
 # Push an annotated tag to publish a release:
-#   git tag -a v1.0.0 -m "Papyrus" -m "- What changed..."
-# The first line of the tag message is the release name, the rest are the release notes.
+#   git tag -a --cleanup=verbatim v1.0.1 -F notes.txt
+# The first line of the tag message is the release name, the rest are the release notes (Markdown).
+# --cleanup=verbatim keeps "## Heading" lines, which git would otherwise drop as comments.
 
 on:
   push:
