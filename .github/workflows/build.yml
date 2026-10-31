@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches: [main, v1]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild -project MVSep.xcodeproj -target MVSep -configuration Release \
+            -destination 'generic/platform=macOS' \
+            SYMROOT="$PWD/build" CODE_SIGN_IDENTITY=- build > build.log 2>&1 \
+            || { grep -E "error:" build.log; tail -40 build.log; exit 1; }
+          grep -E "warning:" build.log | sort -u || true
+
+      - name: Package
+        run: |
+          cd build/Release
+          ditto -c -k --keepParent MVSep.app MacVSep.app.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MacVSep
+          path: build/Release/MacVSep.app.zip
