@@ -74,7 +74,3 @@ If you find any bugs or have suggestions, please [open an issue](https://github.
 ## 🌱 Version Names
 
 Every version of MacVSep is named after a plant. MacVSep splits songs into stems, after all.
-
-## 📄 License
-
-This project is licensed under the MIT License.
