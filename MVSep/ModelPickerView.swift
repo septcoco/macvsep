@@ -8,11 +8,15 @@ struct ModelPickerView: View {
     let isPremiumActive: Bool
     @State private var searchText = ""
     @State private var hoveredModelID: Int?
+    @AppStorage("showModelDetails") private var showModelDetails = false
 
     private var filteredModels: [SeparationModel] {
         let query = searchText.trimmingCharacters(in: .whitespaces)
         guard !query.isEmpty else { return models }
-        return models.filter { $0.name.localizedCaseInsensitiveContains(query) || $0.group.localizedCaseInsensitiveContains(query) }
+        return models.filter {
+            $0.name.localizedCaseInsensitiveContains(query) || $0.group.localizedCaseInsensitiveContains(query)
+                || (showModelDetails && $0.summary.localizedCaseInsensitiveContains(query))
+        }
     }
 
     /// Favorites first, then the server's groups in the order their first model appears.
@@ -41,6 +45,9 @@ struct ModelPickerView: View {
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) { Image(systemName: "xmark.circle.fill").foregroundColor(.secondary) }.buttonStyle(.plain)
                 }
+                Toggle(isOn: $showModelDetails) { Image(systemName: "text.below.photo") }
+                    .toggleStyle(.button).buttonStyle(.borderless)
+                    .help(showModelDetails ? "Hide model descriptions" : "Show model descriptions")
             }
             .padding(10)
             Divider()
@@ -58,15 +65,26 @@ struct ModelPickerView: View {
                 }
             }
         }
-        .frame(width: 420).frame(minHeight: 100, maxHeight: 420)
+        .frame(width: 560).frame(minHeight: 100, maxHeight: 640)
     }
 
     private func row(for model: SeparationModel) -> some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
             Image(systemName: "checkmark").font(.caption.bold()).foregroundColor(.accentColor).opacity(model.id == selectedModelID ? 1 : 0)
-            Text(model.name).fontWeight(model.id == selectedModelID ? .semibold : .regular).lineLimit(1)
-                .padding(.vertical, 6)
-            if model.tier == .premium { PremiumBadge(locked: !isPremiumActive) }
+            VStack(alignment: .leading, spacing: 3) {
+                HStack {
+                    Text(model.name).fontWeight(model.id == selectedModelID ? .semibold : .regular).lineLimit(1)
+                    if model.tier == .premium { PremiumBadge(locked: !isPremiumActive) }
+                }
+                if showModelDetails {
+                    if !model.summary.isEmpty {
+                        Text(model.summary).font(.callout).foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Text(stats(for: model)).font(.caption).foregroundStyle(.tertiary)
+                }
+            }
+            .padding(.vertical, showModelDetails ? 8 : 6)
             Spacer()
             Button(action: { toggleFavorite(for: model) }) {
                 Image(systemName: favoriteIDs.contains(model.id) ? "star.fill" : "star")
@@ -82,13 +100,17 @@ struct ModelPickerView: View {
             selectedModelID = model.id
             isShowingPopover = false
         }
-        .help(tooltip(for: model))
+        .help(showModelDetails ? "" : tooltip(for: model))
+    }
+
+    private func stats(for model: SeparationModel) -> String {
+        var stats = ["Used \(model.usage.formatted()) times this month"]
+        if let rating = model.rating { stats.insert(String(format: "Rated %.1f/5", rating), at: 0) }
+        return stats.joined(separator: " · ")
     }
 
     private func tooltip(for model: SeparationModel) -> String {
-        var stats = ["Used \(model.usage.formatted()) times this month"]
-        if let rating = model.rating { stats.insert(String(format: "Rated %.1f/5", rating), at: 0) }
-        return model.summary.isEmpty ? stats.joined(separator: " · ") : "\(model.summary)\n\n\(stats.joined(separator: " · "))"
+        model.summary.isEmpty ? stats(for: model) : "\(model.summary)\n\n\(stats(for: model))"
     }
 
     private func toggleFavorite(for model: SeparationModel) {

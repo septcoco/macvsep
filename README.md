@@ -9,7 +9,7 @@ A sleek, modern macOS client for the Mvsep music separation API.
 
 ## ✨ Features
 
-*   **Always Up-to-Date Models:** The model list comes straight from Mvsep, so new models show up without an app update. Search them, browse them by category and pin your favorites.
+*   **Always Up-to-Date Models:** The model list comes straight from Mvsep, so new models show up without an app update. Search them, browse them by category, pin your favorites and show each model's description and rating right in the list.
 *   **Premium Support:** See your credits, turn Premium usage on or off, and get an estimate of how many credits a separation will use. Premium-only models and formats are marked with a lock.
 *   **All Output Formats:** mp3, wav (16 and 32 bit), flac (16 and 24 bit) and m4a.
 *   **Live Status:** Upload progress, your position in the queue with an estimated wait, and progress on long files that Mvsep splits into parts.
@@ -51,6 +51,7 @@ Here are some of the features and improvements planned for future versions:
 #### UI & User Experience
 *   [x] **Improved File Input:** Allow users to also click the drop zone to open a file selection dialog.
 *   [x] **Model Search:** Search the model list and browse it by category.
+*   [x] **Model Details:** Optionally show each model's description, rating and monthly usage under its name in a larger model picker.
 *   [ ] **Model Leaderboard/Usage Stats:** Display a list of popular or most-used models (potentially based on community data or user's own usage).
 *   [x] **Enhanced UI/UX:** General improvements to the visual design and user flow.
 *   [x] **Background Customization:** Add options in Settings to change the app's background gradient.

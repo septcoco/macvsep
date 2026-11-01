@@ -156,10 +156,17 @@ struct APIAlgorithm: Decodable {
         return SeparationModel(
             id: render_id, name: name, group: algorithm_group?.name ?? "Other", order: order_id ?? 0,
             tier: SeparationModel.Tier(rawValue: orientation ?? 0) ?? .everyone,
-            priceCoefficient: price_coefficient?.value ?? 1, summary: description ?? "",
+            priceCoefficient: price_coefficient?.value ?? 1, summary: Self.cleanDescription(description),
             usage: usage ?? 0, rating: (rating?.total ?? 0) > 0 ? rating?.average?.value : nil,
             additionalOptions: options
         )
+    }
+
+    /// Descriptions can carry HTML, and models without one come back as "<i>No data found</i>".
+    private static func cleanDescription(_ text: String?) -> String {
+        let plain = (text ?? "").replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return plain.caseInsensitiveCompare("No data found") == .orderedSame ? "" : plain
     }
 }
 
