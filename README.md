@@ -10,7 +10,7 @@ A sleek, modern macOS client for the Mvsep music separation API.
 ## ✨ Features
 
 *   **Always Up-to-Date Models:** The model list comes straight from Mvsep, so new models show up without an app update. Search them, browse them by category, pin your favorites and show each model's description and rating right in the list.
-*   **Premium Support:** See your credits, turn Premium usage on or off, and get an estimate of how many credits a separation will use. Premium-only models and formats are marked with a lock.
+*   **Premium Support:** See your credits, turn Premium usage on or off with one click from the main window, and get an estimate of how many credits a separation will use. Premium-only models and formats are marked with a lock.
 *   **All Output Formats:** mp3, wav (16 and 32 bit), flac (16 and 24 bit) and m4a.
 *   **Live Status:** Upload progress, your position in the queue with an estimated wait, and progress on long files that Mvsep splits into parts.
 *   **Real Cancel:** Cancelling stops the job on the server too, and refunds your credits if it hasn't started yet.

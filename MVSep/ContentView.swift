@@ -41,6 +41,8 @@ struct ContentView: View {
             actionBar
         }
         .frame(minWidth: 480, minHeight: 680).background(backgroundGradient)
+        .overlay { modelPickerOverlay }
+        .animation(.easeOut(duration: 0.15), value: isShowingModelPicker)
         .sheet(isPresented: $showingSettings) { SettingsView() }
         .sheet(isPresented: $isShowingHistory) { HistoryView() }
         .onAppear {
@@ -66,13 +68,7 @@ struct ContentView: View {
         HStack(spacing: 14) {
             Text("MacVSep").font(.largeTitle).bold(); Spacer()
             if let user = account.user {
-                Label("\(user.credits)", systemImage: account.isPremiumActive ? "crown.fill" : "crown")
-                    .font(.callout.weight(.medium).monospacedDigit())
-                    .foregroundColor(account.isPremiumActive ? accentColor : .secondary)
-                    .padding(.horizontal, 10).padding(.vertical, 4)
-                    .background(.thinMaterial, in: Capsule())
-                    .help(account.isPremiumActive ? "Premium is on: \(user.credits) credits left." : "Premium is off: jobs are free, premium formats and models are locked.")
-                    .onTapGesture { showingSettings = true }
+                premiumToggle(for: user)
             } else if account.apiKey.isEmpty {
                 Button("Add API Key") { showingSettings = true }.buttonStyle(.borderedProminent).controlSize(.small)
             }
@@ -80,6 +76,59 @@ struct ContentView: View {
             Button(action: { showingSettings.toggle() }) { Image(systemName: "gearshape.fill").font(.title2) }.buttonStyle(.plain).help("Settings")
         }
         .padding(.horizontal, 24).padding(.vertical, 14).background(.ultraThinMaterial)
+    }
+
+    /// Credits, doubling as a quick Premium on/off switch.
+    private func premiumToggle(for user: UserInfo) -> some View {
+        let isOn = account.isPremiumActive
+        let canTurnOn = user.credits > 0
+        return Button(action: { Task { await account.setPremiumEnabled(!user.premiumEnabled) } }) {
+            HStack(spacing: 6) {
+                if account.isUpdatingPremium {
+                    ProgressView().controlSize(.mini)
+                } else {
+                    Image(systemName: isOn ? "crown.fill" : "crown")
+                }
+                Text("\(user.credits)").monospacedDigit()
+                Text(isOn ? "Active" : "Off").font(.caption.weight(.bold)).textCase(.uppercase)
+                    .padding(.horizontal, 6).padding(.vertical, 1)
+                    .background((isOn ? accentColor : Color.secondary).opacity(0.25), in: Capsule())
+            }
+            .font(.callout.weight(.medium))
+            .foregroundColor(isOn ? accentColor : .secondary)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(isOn ? AnyShapeStyle(accentColor.opacity(0.15)) : AnyShapeStyle(.thinMaterial), in: Capsule())
+            .overlay(Capsule().strokeBorder(accentColor.opacity(isOn ? 0.6 : 0), lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(account.isUpdatingPremium || (!canTurnOn && !user.premiumEnabled))
+        .help(isOn ? "Premium is on: \(user.credits) credits left. Click to turn it off."
+              : canTurnOn ? "Premium is off: jobs are free. Click to turn it on and use your credits."
+              : "Premium is off and you have no credits left.")
+    }
+
+    @ViewBuilder private var modelPickerOverlay: some View {
+        if isShowingModelPicker {
+            GeometryReader { proxy in
+                ZStack {
+                    Color.black.opacity(0.35)
+                        .contentShape(Rectangle())
+                        .onTapGesture { isShowingModelPicker = false }
+                    // Escape closes the picker even when the search field isn't focused.
+                    Button("") { isShowingModelPicker = false }.keyboardShortcut(.cancelAction).opacity(0).frame(width: 0, height: 0)
+                    ModelPickerView(models: catalog.models, favoriteIDs: $favoriteIDs, selectedModelID: $selectedModelID,
+                                    isPresented: $isShowingModelPicker, isPremiumActive: account.isPremiumActive)
+                        .frame(width: max(min(proxy.size.width - 32, 520), proxy.size.width * 0.85),
+                               height: max(min(proxy.size.height - 32, 420), proxy.size.height * 0.85))
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.12)))
+                        .shadow(color: .black.opacity(0.35), radius: 24, y: 8)
+                }
+            }
+            .transition(.opacity)
+        }
     }
 
     private func card<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -177,9 +226,6 @@ struct ContentView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain).disabled(catalog.models.isEmpty).help(selectedModel?.summary ?? "")
-            .popover(isPresented: $isShowingModelPicker, arrowEdge: .bottom) {
-                ModelPickerView(models: catalog.models, favoriteIDs: $favoriteIDs, selectedModelID: $selectedModelID, isShowingPopover: $isShowingModelPicker, isPremiumActive: account.isPremiumActive)
-            }
 
             if let model = selectedModel {
                 ForEach(model.additionalOptions.filter { $0.isVisible(with: selectedAdditionalOptions) }, id: \.self) { option in

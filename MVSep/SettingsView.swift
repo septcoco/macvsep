@@ -110,7 +110,11 @@ struct SettingsView: View {
             Toggle("Download and install updates automatically", isOn: $updater.automaticallyDownloadsUpdates)
                 .disabled(!updater.automaticallyChecksForUpdates)
             LabeledContent("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?")") {
-                Button("Check Now") { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates)
+                Button("Check Now") {
+                    // Sparkle can't relaunch the app while this sheet is open.
+                    dismiss()
+                    updater.checkForUpdates()
+                }.disabled(!updater.canCheckForUpdates)
             }
         } header: {
             Text("Updates")

@@ -4,10 +4,11 @@ struct ModelPickerView: View {
     let models: [SeparationModel]
     @Binding var favoriteIDs: Set<Int>
     @Binding var selectedModelID: Int
-    @Binding var isShowingPopover: Bool
+    @Binding var isPresented: Bool
     let isPremiumActive: Bool
     @State private var searchText = ""
     @State private var hoveredModelID: Int?
+    @FocusState private var isSearchFocused: Bool
     @AppStorage("showModelDetails") private var showModelDetails = false
 
     private var filteredModels: [SeparationModel] {
@@ -41,15 +42,16 @@ struct ModelPickerView: View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "magnifyingglass").foregroundColor(.secondary)
-                TextField("Search \(models.count) models", text: $searchText).textFieldStyle(.plain)
+                TextField("Search \(models.count) models", text: $searchText).textFieldStyle(.plain).focused($isSearchFocused)
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) { Image(systemName: "xmark.circle.fill").foregroundColor(.secondary) }.buttonStyle(.plain)
                 }
-                Toggle(isOn: $showModelDetails) { Image(systemName: "text.below.photo") }
-                    .toggleStyle(.button).buttonStyle(.borderless)
-                    .help(showModelDetails ? "Hide model descriptions" : "Show model descriptions")
+                Divider().frame(height: 16)
+                Toggle("Show info", isOn: $showModelDetails)
+                    .toggleStyle(.switch).controlSize(.mini)
+                    .help("Show each model's description, rating and monthly usage")
             }
-            .padding(10)
+            .padding(12)
             Divider()
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
@@ -65,7 +67,8 @@ struct ModelPickerView: View {
                 }
             }
         }
-        .frame(width: 560).frame(minHeight: 100, maxHeight: 640)
+        .onAppear { isSearchFocused = true }
+        .onExitCommand { isPresented = false }
     }
 
     private func row(for model: SeparationModel) -> some View {
@@ -98,7 +101,7 @@ struct ModelPickerView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             selectedModelID = model.id
-            isShowingPopover = false
+            isPresented = false
         }
         .help(showModelDetails ? "" : tooltip(for: model))
     }
